@@ -23,6 +23,19 @@ import { initGame } from "../data";
 "messages": []}
 */
 
+export const move = direction => {
+  let command = { direction: direction };
+  return axiosWithAuth()
+    .post("move/", command)
+    .then(res => {
+      console.log(res.data);
+      return res.data;
+    })
+    .catch(err => console.log("error", err.message));
+};
+
+const opposite_direction = { s: "n", n: "s", e: "w", w: "e" };
+
 export const makeGraph = async () => {
   //Create our loop
 
@@ -36,6 +49,7 @@ export const makeGraph = async () => {
   // set the TIMER! (remember for live server)
   // add room to make room object in graph
   console.log(room);
+  wait(room.cooldown);
   while (Object.keys(graph).length < 500) {
     // put main logic here using helper functions
     // if room isn't in the graph, add room
@@ -46,11 +60,27 @@ export const makeGraph = async () => {
     // find valid exits
     let direction = validDirection(graph[room.room_id], graph);
     if (direction) {
-      prev_room = room.room_id;
+      prev_room = room;
       // execute call to move
+      current_room = await move(direction);
+      if (!graph[current_room.room_id]) {
+        addRoom(current_room, graph);
+      }
+      console.log("graph", graph);
+
+      console.log("prev_room", prev_room);
+      console.log("current_room", current_room);
+      console.log("opposite", opposite_direction[direction], direction);
+
       // save prev_room to current_room, opposite direction of move
+      console.log(graph[current_room.room_id]);
+      graph[current_room.room_id].neighbors[
+        opposite_direction[direction]
+      ] = prev_room;
       // save current_room to prev_room, direction
+      graph[prev_room.room_id].neighbors[direction] = current_room;
     }
+    console.log("GRAPH", graph);
     break;
     // if there are options, traverse
     // create a post request to move
@@ -80,8 +110,6 @@ function randomChoice(choices) {
   var index = Math.floor(Math.random() * choices.length);
   return choices[index];
 }
-
-const opposite_direction = { s: "n", n: "s", e: "w", w: "e" };
 
 // // for ( let [key, value] of Object.entries(graph[data.room_id])){
 // // }
@@ -123,3 +151,11 @@ function validDirection(data, graph) {
 //     }
 //   }
 // }
+
+function wait(seconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < seconds * 1000);
+}
