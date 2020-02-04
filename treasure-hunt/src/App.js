@@ -1,7 +1,11 @@
 import React from "react";
 
+import { makeGraph } from "./util/traverse";
+
 function App() {
-  return <div className="App"></div>;
+  makeGraph();
+
+  return <div className="App">"TEST"</div>;
 }
 
 export default App;
