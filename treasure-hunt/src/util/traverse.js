@@ -23,7 +23,6 @@ export const move = direction => {
   return axiosWithAuth()
     .post("adv/move/", command)
     .then(res => {
-      console.log(res.data);
       return res.data;
     })
     .catch(err => console.log("error", err.response));
@@ -44,6 +43,8 @@ export const makeGraph = async () => {
       addRoom(room, graph);
     }
 
+    console.log("CURRENT room", room);
+
     // find valid exits
     let direction = validDirection(graph[room.room_id], graph);
     // if there are options, traverse
@@ -60,7 +61,6 @@ export const makeGraph = async () => {
       }
 
       // save current_room to prev_room, direction
-
       graph[prev_room.room_id].neighbors[direction] = room.room_id;
 
       // save prev_room to current_room, opposite direction of move
@@ -120,21 +120,20 @@ function validDirection(data, graph) {
 }
 
 function bfs(startingRoom, graph) {
-  console.log("STARTING ROOM", startingRoom);
-  const queue = [];
+  console.log("STARTING ROOM BFS", startingRoom);
+  let queue = [];
   queue.push([startingRoom]);
   const visited = new Set();
+  console.log("VISITED", visited);
   while (queue.length > 0) {
     let path = queue.shift();
-    console.log("path", path);
     let room = path[path.length - 1];
-    console.log("room", room);
     if (validDirection(room, graph) !== null) {
-      console.log("path", path);
+      queue = [];
       return path;
     }
     if (!visited.has(room.room_id)) {
-      visited.add(room.id);
+      visited.add(room.room_id);
       let neighbors = graph[room.room_id].neighbors;
       for (let neighbor in neighbors) {
         let new_path = [...path, graph[neighbors[neighbor]]];
@@ -155,10 +154,12 @@ function walkBack(path) {
     console.log("NEXT ROOM", nextRoom);
     let directions = ["n", "s", "e", "w"];
     for (let dir of directions) {
-      if (startingRoom[dir] === nextRoom.room_id) {
-        move(dir);
+      wait(startingRoom.cooldown);
+      if (startingRoom.neighbors[dir] === nextRoom.room_id) {
+        let newRoom = move(dir);
         startingRoom = nextRoom;
         console.log("DIRECTION", dir);
+        break;
       }
     }
   }
