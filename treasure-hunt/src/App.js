@@ -1,8 +1,9 @@
 import React from "react";
-import { initGame } from "./data";
+
+import { makeGraph } from "./util/traverse";
 
 function App() {
-  initGame();
+  makeGraph();
 
   return <div className="App">"TEST"</div>;
 }
