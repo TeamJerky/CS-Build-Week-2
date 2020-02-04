@@ -31,62 +31,51 @@ export const move = direction => {
       console.log(res.data);
       return res.data;
     })
-    .catch(err => console.log("error", err.message));
+    .catch(err => console.log("error", err.response));
 };
 
 const opposite_direction = { s: "n", n: "s", e: "w", w: "e" };
 
 export const makeGraph = async () => {
-  //Create our loop
-
   const graph = {}; //Store the map
 
   //Initialize first room at current location
-  let room = await initGame(); //axios call to init
+  let room = await initGame();
   let prev_room;
-  let current_room;
 
-  // set the TIMER! (remember for live server)
-  // add room to make room object in graph
-  console.log(room);
-  wait(room.cooldown);
   while (Object.keys(graph).length < 500) {
-    // put main logic here using helper functions
-    // if room isn't in the graph, add room
+    wait(room.cooldown);
     if (!graph[room]) {
       addRoom(room, graph);
     }
 
     // find valid exits
     let direction = validDirection(graph[room.room_id], graph);
-    if (direction) {
-      prev_room = room;
-      // execute call to move
-      current_room = await move(direction);
-      if (!graph[current_room.room_id]) {
-        addRoom(current_room, graph);
-      }
-      console.log("graph", graph);
-
-      console.log("prev_room", prev_room);
-      console.log("current_room", current_room);
-      console.log("opposite", opposite_direction[direction], direction);
-
-      // save prev_room to current_room, opposite direction of move
-      console.log(graph[current_room.room_id]);
-      graph[current_room.room_id].neighbors[
-        opposite_direction[direction]
-      ] = prev_room;
-      // save current_room to prev_room, direction
-      graph[prev_room.room_id].neighbors[direction] = current_room;
-    }
-    console.log("GRAPH", graph);
-    break;
     // if there are options, traverse
     // create a post request to move
-    // else use bfs to find another valid room
+    if (direction) {
+      prev_room = room;
+      room = await move(direction);
+      console.log("room", room);
+      if (!graph[room.room_id]) {
+        addRoom(room, graph);
+      }
+
+      console.log("prev_room", prev_room);
+      console.log("current_room", room);
+
+      // save current_room to prev_room, direction
+      console.log("prev", graph[prev_room.room_id]);
+      graph[prev_room.room_id].neighbors[direction] = room;
+      // save prev_room to current_room, opposite direction of move
+      graph[room.room_id].neighbors[opposite_direction[direction]] = prev_room;
+    } else {
+      // else use bfs to find another valid room
+      bfs(room, graph);
+    }
+    console.log("GRAPH", graph);
+    console.log("GRAPH", JSON.stringify(graph));
   }
-  console.log(graph);
 
   // console.log graph data
   return <>Lets Map that Graph</>;
@@ -131,26 +120,28 @@ function validDirection(data, graph) {
   }
 }
 
-// function bfs(starting_room) {
-//   const queue = [];
-//   queue.push([starting_room]);
-//   const visited = Set();
-//   while (queue.length > 0) {
-//     let path = queue.pop();
-//     let room = path[path.length - 1];
-//     if (valid_direction(room) !== null) {
-//       return convert_path(path);
-//     }
-//     if (!visited.includes(room.id)) {
-//       visited.push(room.id);
-//       for (let dir in graph[room.id]) {
-//         let new_room = room.get_room_in_direction(direction);
-//         let new_path = path + [new_room];
-//         queue.pop(new_path);
-//       }
-//     }
-//   }
-// }
+function bfs(startingRoom, graph) {
+  const queue = [];
+  queue.push([startingRoom]);
+  const visited = Set();
+  while (queue.length > 0) {
+    let path = queue.pop();
+    let room = path[path.length - 1];
+    if (validDirection(room) !== null) {
+      return path;
+    }
+    if (!visited.has(room.room_id)) {
+      visited.add(room.id);
+      let neighbors = graph[room.room_id].neighbors;
+      for (let neighbor of neighbors) {
+        let new_path = [...path, neighbor];
+        queue.pop(new_path);
+      }
+    }
+  }
+}
+
+function walkBack(path, graph) {}
 
 function wait(seconds) {
   const date = Date.now();
