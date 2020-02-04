@@ -45,7 +45,7 @@ export const makeGraph = async () => {
 
   while (Object.keys(graph).length < 500) {
     wait(room.cooldown);
-    if (!graph[room]) {
+    if (!graph[room.room_id]) {
       addRoom(room, graph);
     }
 
@@ -53,28 +53,31 @@ export const makeGraph = async () => {
     let direction = validDirection(graph[room.room_id], graph);
     // if there are options, traverse
     // create a post request to move
+    prev_room = room;
     if (direction) {
-      prev_room = room;
       room = await move(direction);
-      console.log("room", room);
+      console.log(
+        `Going from room ${prev_room.room_id} to room ${room.room_id}, going ${direction}`
+      );
+
       if (!graph[room.room_id]) {
         addRoom(room, graph);
       }
 
-      console.log("prev_room", prev_room);
-      console.log("current_room", room);
-
       // save current_room to prev_room, direction
-      console.log("prev", graph[prev_room.room_id]);
-      graph[prev_room.room_id].neighbors[direction] = room;
+
+      graph[prev_room.room_id].neighbors[direction] = room.room_id;
+
       // save prev_room to current_room, opposite direction of move
-      graph[room.room_id].neighbors[opposite_direction[direction]] = prev_room;
+      graph[room.room_id].neighbors[opposite_direction[direction]] =
+        prev_room.room_id;
     } else {
       // else use bfs to find another valid room
-      bfs(room, graph);
+      console.log("BFS", bfs(graph[room.room_id], graph));
+      break;
     }
     console.log("GRAPH", graph);
-    console.log("GRAPH", JSON.stringify(graph));
+    // console.log("GRAPH", JSON.stringify(graph));
   }
 
   // console.log graph data
@@ -109,11 +112,9 @@ function validDirection(data, graph) {
   for (let [direction, room] of neighbors) {
     if (graph[data.room_id].neighbors[direction] === "?") {
       options.push(direction);
-      console.log("DIRECTION OPTIONS", options);
     }
   }
   if (options.length > 0) {
-    console.log(randomChoice(options));
     return randomChoice(options);
   } else {
     return null;
@@ -123,19 +124,23 @@ function validDirection(data, graph) {
 function bfs(startingRoom, graph) {
   const queue = [];
   queue.push([startingRoom]);
-  const visited = Set();
+  const visited = new Set();
   while (queue.length > 0) {
-    let path = queue.pop();
+    let path = queue.shift();
+    console.log("path", path);
     let room = path[path.length - 1];
-    if (validDirection(room) !== null) {
+    console.log("room", room);
+    if (validDirection(room, graph) !== null) {
+      console.log("path", path);
       return path;
     }
     if (!visited.has(room.room_id)) {
       visited.add(room.id);
       let neighbors = graph[room.room_id].neighbors;
-      for (let neighbor of neighbors) {
-        let new_path = [...path, neighbor];
-        queue.pop(new_path);
+      for (let neighbor in neighbors) {
+        let new_path = [...path, graph[neighbors[neighbor]]];
+        console.log("new path", new_path);
+        queue.shift(new_path);
       }
     }
   }
