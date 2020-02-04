@@ -5,7 +5,7 @@
 // Check the response from the Move Request, and update the Graph
 // Now Keep running the loop until All Rooms are Map (While graph keys.length < 500)
 import React from "react";
-import { axiosWithAuth } from "../util/axiosAuth";
+import { axiosWithAuth } from "./axiosAuth";
 import { initGame } from "../data";
 
 /*
@@ -42,6 +42,7 @@ export const makeGraph = async () => {
   //Initialize first room at current location
   let room = await initGame();
   let prev_room;
+  console.log(room)
 
   while (Object.keys(graph).length < 500) {
     wait(room.cooldown);
