@@ -1,12 +1,7 @@
-// connect to server
-// acquire Initial Response (First Attempt Usage)
-// Start store Graph aka Map data in console, localstorage
-// Send a Move Request by analyzing the current Response Room data
-// Check the response from the Move Request, and update the Graph
-// Now Keep running the loop until All Rooms are Map (While graph keys.length < 500)
 import React from "react";
 import { axiosWithAuth } from "../util/axiosAuth";
 import { initGame } from "../data";
+// import { move } from "../actions";
 
 /*
 {"room_id": 0,
@@ -26,7 +21,7 @@ import { initGame } from "../data";
 export const move = direction => {
   let command = { direction: direction };
   return axiosWithAuth()
-    .post("move/", command)
+    .post("adv/move/", command)
     .then(res => {
       console.log(res.data);
       return res.data;
@@ -74,10 +69,13 @@ export const makeGraph = async () => {
     } else {
       // else use bfs to find another valid room
       console.log("BFS", bfs(graph[room.room_id], graph));
-      break;
+      let bfsPath = bfs(graph[room.room_id], graph);
+      room = walkBack(bfsPath);
     }
-    console.log("GRAPH", graph);
-    // console.log("GRAPH", JSON.stringify(graph));
+    if (Object.keys(graph).length % 10 === 0) {
+      console.log("GRAPH", graph);
+      console.log("JSON GRAPH", JSON.stringify(graph));
+    }
   }
 
   // console.log graph data
@@ -122,6 +120,7 @@ function validDirection(data, graph) {
 }
 
 function bfs(startingRoom, graph) {
+  console.log("STARTING ROOM", startingRoom);
   const queue = [];
   queue.push([startingRoom]);
   const visited = new Set();
@@ -140,13 +139,31 @@ function bfs(startingRoom, graph) {
       for (let neighbor in neighbors) {
         let new_path = [...path, graph[neighbors[neighbor]]];
         console.log("new path", new_path);
-        queue.shift(new_path);
+        queue.push(new_path);
       }
     }
   }
 }
 
-function walkBack(path, graph) {}
+function walkBack(path) {
+  let startingRoom = path.shift();
+  console.log("STARTING ROOM", startingRoom);
+  let nextRoom = null;
+
+  while (path.length > 0) {
+    nextRoom = path.shift();
+    console.log("NEXT ROOM", nextRoom);
+    let directions = ["n", "s", "e", "w"];
+    for (let dir of directions) {
+      if (startingRoom[dir] === nextRoom.room_id) {
+        move(dir);
+        startingRoom = nextRoom;
+        console.log("DIRECTION", dir);
+      }
+    }
+  }
+  return startingRoom;
+}
 
 function wait(seconds) {
   const date = Date.now();

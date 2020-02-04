@@ -2,7 +2,7 @@ import { axiosWithAuth } from "../src/util/axiosAuth";
 
 export const initGame = () => {
   return axiosWithAuth()
-    .get("init/")
+    .get("adv/init/")
     .then(res => {
       console.log(res.data);
       return res.data;
