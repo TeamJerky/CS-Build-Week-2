@@ -51,6 +51,7 @@ export const makeGraph = async () => {
     // create a post request to move
     prev_room = room;
     if (direction) {
+      wait(room.cooldown);
       room = await move(direction);
       console.log(
         `Going from room ${prev_room.room_id} to room ${room.room_id}, going ${direction}`
@@ -68,9 +69,9 @@ export const makeGraph = async () => {
         prev_room.room_id;
     } else {
       // else use bfs to find another valid room
-      console.log("BFS", bfs(graph[room.room_id], graph));
       let bfsPath = bfs(graph[room.room_id], graph);
-      room = walkBack(bfsPath);
+      console.log("BFSPATH", bfsPath);
+      room = await walkBack(bfsPath);
     }
     if (Object.keys(graph).length % 10 === 0) {
       console.log("GRAPH", graph);
@@ -129,13 +130,13 @@ function bfs(startingRoom, graph) {
     let path = queue.shift();
     let room = path[path.length - 1];
     if (validDirection(room, graph) !== null) {
-      queue = [];
       return path;
     }
     if (!visited.has(room.room_id)) {
       visited.add(room.room_id);
       let neighbors = graph[room.room_id].neighbors;
       for (let neighbor in neighbors) {
+        console.log("Neighbor", neighbors[neighbor]);
         let new_path = [...path, graph[neighbors[neighbor]]];
         console.log("new path", new_path);
         queue.push(new_path);
@@ -144,7 +145,7 @@ function bfs(startingRoom, graph) {
   }
 }
 
-function walkBack(path) {
+async function walkBack(path) {
   let startingRoom = path.shift();
   console.log("STARTING ROOM", startingRoom);
   let nextRoom = null;
@@ -154,10 +155,10 @@ function walkBack(path) {
     console.log("NEXT ROOM", nextRoom);
     let directions = ["n", "s", "e", "w"];
     for (let dir of directions) {
-      wait(startingRoom.cooldown);
       if (startingRoom.neighbors[dir] === nextRoom.room_id) {
-        let newRoom = move(dir);
+        let newRoom = await move(dir);
         startingRoom = nextRoom;
+        wait(startingRoom.cooldown);
         console.log("DIRECTION", dir);
         break;
       }
