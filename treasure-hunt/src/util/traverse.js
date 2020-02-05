@@ -28,6 +28,16 @@ export const move = direction => {
     .catch(err => console.log("error", err.response));
 };
 
+export const moveBoosted = (direction, nextRoomId) => {
+  let command = { direction: direction, next_room_id: `${nextRoomId}` };
+  return axiosWithAuth()
+    .post("adv/move/", command)
+    .then(res => {
+      return res.data;
+    })
+    .catch(err => console.log("error", err.response));
+};
+
 const opposite_direction = { s: "n", n: "s", e: "w", w: "e" };
 
 export const makeGraph = async () => {
@@ -125,7 +135,6 @@ function bfs(startingRoom, graph) {
   let queue = [];
   queue.push([startingRoom]);
   const visited = new Set();
-  console.log("VISITED", visited);
   while (queue.length > 0) {
     let path = queue.shift();
     let room = path[path.length - 1];
@@ -136,9 +145,7 @@ function bfs(startingRoom, graph) {
       visited.add(room.room_id);
       let neighbors = graph[room.room_id].neighbors;
       for (let neighbor in neighbors) {
-        console.log("Neighbor", neighbors[neighbor]);
         let new_path = [...path, graph[neighbors[neighbor]]];
-        console.log("new path", new_path);
         queue.push(new_path);
       }
     }
@@ -147,19 +154,18 @@ function bfs(startingRoom, graph) {
 
 async function walkBack(path) {
   let startingRoom = path.shift();
-  console.log("STARTING ROOM", startingRoom);
   let nextRoom = null;
 
   while (path.length > 0) {
     nextRoom = path.shift();
-    console.log("NEXT ROOM", nextRoom);
     let directions = ["n", "s", "e", "w"];
     for (let dir of directions) {
       if (startingRoom.neighbors[dir] === nextRoom.room_id) {
-        let newRoom = await move(dir);
+        console.log("NEXT ROOM ID", nextRoom.room_id);
+        let newRoom = await moveBoosted(dir, nextRoom.room_id);
         startingRoom = nextRoom;
-        wait(startingRoom.cooldown);
-        console.log("DIRECTION", dir);
+        console.log("COOLDOWN", newRoom.cooldown);
+        wait(newRoom.cooldown);
         break;
       }
     }
