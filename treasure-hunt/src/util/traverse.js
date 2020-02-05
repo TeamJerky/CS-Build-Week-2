@@ -57,16 +57,16 @@ export const makeGraph = async () => {
     if (direction) {
       prev_room = room;
       room = await move(direction);
-      console.log("room", room);
+      // console.log("room", room);
       if (!graph[room.room_id]) {
         addRoom(room, graph);
       }
 
-      console.log("prev_room", prev_room);
-      console.log("current_room", room);
+      // console.log("prev_room", prev_room);
+      // console.log("current_room", room);
 
       // save current_room to prev_room, direction
-      console.log("prev", graph[prev_room.room_id]);
+      // console.log("prev", graph[prev_room.room_id]);
       graph[prev_room.room_id].neighbors[direction] = room;
       // save prev_room to current_room, opposite direction of move
       graph[room.room_id].neighbors[opposite_direction[direction]] = prev_room;
@@ -74,8 +74,8 @@ export const makeGraph = async () => {
       // else use bfs to find another valid room
       bfs(room, graph);
     }
-    console.log("GRAPH", graph);
-    console.log("GRAPH", JSON.stringify(graph));
+    // console.log("GRAPH", graph);
+    // console.log("GRAPH", JSON.stringify(graph));
   }
 
   // console.log graph data
