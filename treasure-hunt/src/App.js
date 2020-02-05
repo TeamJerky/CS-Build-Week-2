@@ -1,18 +1,17 @@
 import React from "react";
+import { StateProvider } from "./contexts/StateContext";
+import { rootReducer, initialState } from "./reducers";
 
 import { makeGraph } from "./util/traverse";
 
 function App() {
   makeGraph();
 
-  // const handleTake = event => {
-  //   event.preventDefault();
-  //   handleTake(dispatch, name)
-  // }
-
-  return <div className="App">
-    <button >take</button>
-  </div>;
+  return (
+    <StateProvider initialState={initialState} reducer={rootReducer}>
+      <div className="App">Treasure Hunt</div>
+    </StateProvider>
+  );
 }
 
 export default App;
