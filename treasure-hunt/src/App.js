@@ -4,8 +4,8 @@ import { rootReducer, initialState } from "./reducers";
 import { traverse } from "./util/shortestPath";
 
 function App() {
-  traverse(492);
-  // walkBack(path);
+  traverse(356);
+
   return (
     <StateProvider initialState={initialState} reducer={rootReducer}>
       <div className="App">Treasure Hunt</div>
