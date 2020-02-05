@@ -1,4 +1,4 @@
-import {axiosAuth} from "../util/axiosAuth";
+import {axiosWithAuth} from "../util/axiosAuth";
 
 export const TAKING_ITEM = "TAKING_ITEM";
 export const TAKING_ITEM_SUCCESS = "TAKING_ITEM_SUCCESS";
@@ -6,7 +6,7 @@ export const TAKING_ITEM_ERROR = "TAKING_ITEM_ERROR";
 
 export const take = dispatch => {
     dispatch({type: TAKING_ITEM});
-    axiosAuth()
+    axiosWithAuth()
     .get("/take")
     .then(res => {
         dispatch({type: TAKING_ITEM_SUCCESS, payload: res.data});

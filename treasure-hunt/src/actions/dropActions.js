@@ -13,6 +13,6 @@ export const Drop = dispatch => {
         dispatch({type: DROP_SUCESS, payload: res.data});
     })
     .catch(err => {
-        dispatch({type: DROP_ERROR, payload: err.response.data)
+        dispatch({type: DROP_ERROR, payload: err.response.data})
     })
 }

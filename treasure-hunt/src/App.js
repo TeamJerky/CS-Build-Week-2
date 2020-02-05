@@ -1,12 +1,11 @@
 import React from "react";
 import { StateProvider } from "./contexts/StateContext";
 import { rootReducer, initialState } from "./reducers";
-
-import { makeGraph } from "./util/traverse";
+import { traverse } from "./util/shortestPath";
 
 function App() {
-  makeGraph();
-
+  traverse(329);
+  // walkBack(path);
   return (
     <StateProvider initialState={initialState} reducer={rootReducer}>
       <div className="App">Treasure Hunt</div>

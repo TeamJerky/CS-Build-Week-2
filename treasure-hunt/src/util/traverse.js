@@ -153,7 +153,7 @@ function bfs(startingRoom, graph) {
   }
 }
 
-async function walkBack(path) {
+export async function walkBack(path) {
   let startingRoom = path.shift();
   let nextRoom = null;
 
@@ -174,7 +174,7 @@ async function walkBack(path) {
   return startingRoom;
 }
 
-function wait(seconds) {
+export function wait(seconds) {
   const date = Date.now();
   let currentDate = null;
   do {

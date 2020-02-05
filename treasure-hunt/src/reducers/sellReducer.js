@@ -21,6 +21,6 @@ export const sellReducer = (initialState, {type, payload}) => {
                 error: payload
             };
         default:
-            return state;
+            return initialState;
     }
 }

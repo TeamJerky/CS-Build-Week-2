@@ -6,7 +6,7 @@ export const MINING_ERROR = "MINING_ERROR"
 
 export const mine = dispatch => {
   dispatch({ type: MINING_START });
-  axiosAuth()
+  axiosWithAuth()
     .get("bc/mine/")
     .then(res => {
       dispatch({ type: MINING_SUCESS, payload: res.data });
