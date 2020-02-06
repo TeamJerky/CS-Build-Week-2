@@ -65,13 +65,13 @@ const getSnitch = () => {
     .catch(err => console.log(err.response));
 };
 
-const recall = () => {
+export const recall = () => {
   return axiosWithAuth()
     .post("adv/recall/")
     .then(res => res.data)
     .catch(err => console.log(err));
 };
-const warp = () => {
+export const warp = () => {
   return axiosWithAuth()
     .post("adv/warp/")
     .then(res => res.data)

@@ -203,7 +203,11 @@ export async function walkBack(path) {
       for (let i = 1; i < startingRoom.length; i++) {
         move = await moveBoosted(direction, `${startingRoom[i].room_id}`);
         wait(move.cooldown);
-        console.log(move.cooldown, "MOVE COOLDOWN");
+        console.log(
+          move.cooldown,
+          "MOVE COOLDOWN",
+          `${startingRoom[i].room_id}`
+        );
       }
       if (path.length === 0) {
         return move;

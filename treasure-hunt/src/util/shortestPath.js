@@ -2,7 +2,7 @@ import { map } from "./map";
 import { initGame } from "../data";
 import { walkBack, wait } from "./traverse";
 
-function goToRoomById(startingRoom, graph, roomId) {
+export function goToRoomById(startingRoom, graph, roomId) {
   console.log("STARTING ROOM BFS", startingRoom);
   let queue = [];
   queue.push([startingRoom]);
@@ -87,10 +87,18 @@ function withDash(path, map) {
           map[nextRoom.room_id].neighbors[initialDirection] !==
           path[i + 1].room_id
         ) {
+          neighbors = Object.entries(map[nextRoom.room_id].neighbors);
+          let currentDirection = neighbors.filter(
+            ([key, value]) => value === path[i + 1].room_id
+          )[0][0];
+          if (initialDirection !== currentDirection) {
+            initialDirection = currentDirection;
+          }
           dashPath.push(nextRoom);
           finalPath.push(dashPath);
           dashPath = [initialDirection];
           dashPath.push(nextRoom);
+          dashPath.push(path[i + 1]);
           finalPath.push(dashPath);
         } else {
           dashPath.push(nextRoom, path[i + 1]);

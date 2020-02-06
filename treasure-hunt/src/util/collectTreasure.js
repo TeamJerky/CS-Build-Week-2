@@ -1,6 +1,18 @@
-import { map } from "./map";
+import { axiosWithAuth } from "../util/axiosAuth";
 import { initGame } from "../data";
-import { walkBack, wait } from "./traverse";
+import { walkBack, wait, moveBoosted } from "./traverse";
+import { goToRoomById, traverse } from "./shortestPath";
+import { recall, warp } from "../actions/miningActions";
+
+export const fly = dir => {
+  let direction = { direction: dir };
+  return axiosWithAuth()
+    .post("adv/fly/", direction)
+    .then(res => {
+      return res.data;
+    })
+    .catch(err => console.log("error", err.response));
+};
 
 export const playerStatus = () => {
   return axiosWithAuth()
@@ -21,75 +33,95 @@ export const collectItem = item => {
     .catch(err => console.log("error", err.response));
 };
 
-function goToRoomById(startingRoom, graph, roomId) {
-  console.log("STARTING ROOM BFS", startingRoom);
-  let queue = [];
-  queue.push([startingRoom]);
-  const visited = new Set();
-  while (queue.length > 0) {
-    let path = queue.shift();
-    let room = path[path.length - 1];
-    //Condition to return path when given room id is found aka shop, return that path, otherwise keep searching for it
-    if (room.room_id === roomId) {
-      return path;
-    }
-    if (!visited.has(room.room_id)) {
-      visited.add(room.room_id);
-      let neighbors = graph[room.room_id].neighbors;
-      for (let neighbor in neighbors) {
-        let new_path = [...path, graph[neighbors[neighbor]]];
-        queue.push(new_path);
-      }
-    }
-  }
+export const sellItem = item => {
+  let toSell = { name: item, confirm: "yes" };
+  return axiosWithAuth()
+    .post("adv/sell/", toSell)
+    .then(res => {
+      console.log(`sold ${item}`);
+      return res.data;
+    })
+    .catch(err => console.log("error", err.response));
+};
+
+export async function sellTreasure() {
+  let roomZero = await recall();
+  wait(roomZero.cooldown);
+  let shop = moveBoosted("w", 1);
+  wait(shop.cooldown);
+
+  let player = await playerStatus();
+  wait(player.cooldown);
+  player.inventory(async item => {
+    let sold = await sellItem(item);
+    wait(sold.cooldown);
+  });
 }
 
-export async function traverseWithGold(target) {
+export const collectTreasure = async map => {
+  //Initialize current player location
+  let room = await initGame();
+  let prevRoom = room;
+
+  while (true) {
+    console.log("ROOM", room, "PREV ROOM", prevRoom);
+    wait(room.cooldown);
+    let player = await playerStatus();
+    console.log("PLAYER", player);
+    wait(player.cooldown);
+    //Check for encumbrance
+    if (player.encumbrance < player.strength) {
+      room = await traverseForGold(Math.floor(Math.random() * 499), map);
+      wait(room.cooldown);
+    } else {
+      sellTreasure();
+    }
+  }
+};
+
+export async function traverseForGold(target, map) {
   let room = await initGame();
   wait(room.cooldown);
   let path = goToRoomById(map[room.room_id], map, target);
   console.log("room", room, "path", path);
-  await walkBack(path);
+
+  return await walkBackForGold(path);
 }
 
-const collectTreasure = async () => {
-  //Enter Graph data
-  const graph = {};
+export async function walkBackForGold(path) {
+  let startingRoom = path.shift();
+  let nextRoom = null;
 
-  //Initialize current player location
-  let room = await initGame();
-  let player = await playerStatus();
+  console.log("walkBack path", path, "startingRoom", startingRoom);
 
-  while (player.gold < 1000) {
-    //Check for encumbrance
-    if (player.encumbrance < player.strength) {
-      //Scan the room for treasure
-      while (room.items.length !== 0) {
-        //Collect Treasure
-        //Save the response may be or is it needed
-        await collectItem(room.items[0]);
-        //sync room locally and then rerun loop
-        room = await initGame();
+  while (path.length > 0) {
+    nextRoom = path.shift();
+    let directions = ["n", "s", "e", "w"];
+    let newRoom;
+
+    for (let dir of directions) {
+      if (startingRoom.neighbors[dir] === nextRoom.room_id) {
+        console.log("NEXT ROOM ID", nextRoom.room_id);
+        if (nextRoom.terrain === "MOUNTAIN") {
+          newRoom = await fly(dir);
+          console.log("FLYING", newRoom);
+        } else {
+          newRoom = await moveBoosted(dir, nextRoom.room_id);
+          console.log("BOOSTED", newRoom);
+        }
+        startingRoom = nextRoom;
+        console.log("COOLDOWN", newRoom.cooldown);
+        wait(newRoom.cooldown);
+
+        while (newRoom.items.length > 0) {
+          let collected = await collectItem(newRoom.items[0]);
+          console.log("COLLECTING ITEMS!", "Items", newRoom.items);
+          newRoom = collected;
+          wait(collected.cooldown);
+        }
+        break;
       }
-      //Move to another room look for treasure
-      let direction = randomDoorChoice(room, graph);
-      room = await move(direction);
-    } else {
-      //Go to Shop
-      let pathToShop = goToRoomById(room, graph, 1);
-      room = await walkbback(pathToShop);
-      //we are at the shop, lets sell stuff
-      //request upto date status, loop through
-      player = await playerStatus();
-
-      while (player.inventory.length !== 0) {
-        //Sell item at a time
-        sellItem(player.inventory[0]);
-        //Update player variable and this should also outermost loop count too
-        player = await playerStatus();
-      }
-      //Once sold, repeat collecting treasure
     }
-    //update
   }
-};
+  return startingRoom;
+}
