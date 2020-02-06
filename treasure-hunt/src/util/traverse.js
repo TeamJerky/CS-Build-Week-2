@@ -38,6 +38,19 @@ export const moveBoosted = (direction, nextRoomId) => {
     .catch(err => console.log("error", err.response));
 };
 
+export const dash = (direction, num_rooms, next_room_ids) => {
+  let command = {
+    direction: direction,
+    num_rooms: `${num_rooms}`,
+    next_room_ids: next_room_ids
+  };
+  return axiosWithAuth()
+    .post("adv/dash/", command)
+    .then(res => {
+      return res.data;
+    })
+    .catch(err => console.log("error", err.response));
+};
 const opposite_direction = { s: "n", n: "s", e: "w", w: "e" };
 
 export const makeGraph = async () => {
@@ -153,24 +166,70 @@ function bfs(startingRoom, graph) {
 }
 
 export async function walkBack(path) {
-  let startingRoom = path.shift();
-  let nextRoom = null;
-
+  let startingRoom;
   while (path.length > 0) {
-    nextRoom = path.shift();
-    let directions = ["n", "s", "e", "w"];
-    for (let dir of directions) {
-      if (startingRoom.neighbors[dir] === nextRoom.room_id) {
-        console.log("NEXT ROOM ID", nextRoom.room_id);
-        let newRoom = await moveBoosted(dir, nextRoom.room_id);
-        startingRoom = nextRoom;
-        console.log("COOLDOWN", newRoom.cooldown);
-        wait(newRoom.cooldown);
-        break;
+    startingRoom = path.shift();
+
+    if (startingRoom.length > 3) {
+      let rooms = startingRoom
+        .slice(1, startingRoom.length)
+        .map(room => room.room_id)
+        .join(",");
+
+      console.log(
+        "starting room",
+        startingRoom[0],
+        "#",
+        startingRoom.length - 1,
+        "rooms",
+        rooms
+      );
+      let dashing = await dash(startingRoom[0], startingRoom.length - 1, rooms);
+      console.log("DASHING", dashing);
+      wait(dashing.cooldown);
+      console.log(dashing.cooldown, "DASHING COOLDOWN");
+      if (path.length === 0) {
+        return dashing;
+      }
+    } else {
+      console.log(
+        "starting room move",
+        startingRoom[0],
+        "next room",
+        startingRoom[1].room_id
+      );
+      let direction = startingRoom[0];
+      let move;
+      for (let i = 1; i < startingRoom.length; i++) {
+        move = await moveBoosted(direction, `${startingRoom[i].room_id}`);
+        wait(move.cooldown);
+        console.log(move.cooldown, "MOVE COOLDOWN");
+      }
+      if (path.length === 0) {
+        return move;
       }
     }
   }
-  return startingRoom;
+
+  // let startingRoom = path.shift();
+  // let nextRoom = null;
+
+  // while (path.length > 0) {
+  //   nextRoom = path.shift();
+  //   let directions = ["n", "s", "e", "w"];
+
+  //   for (let dir of directions) {
+  //     if (startingRoom.neighbors[dir] === nextRoom.room_id) {
+  //       console.log("NEXT ROOM ID", nextRoom.room_id);
+  //       let newRoom = await moveBoosted(dir, nextRoom.room_id);
+  //       startingRoom = nextRoom;
+  //       console.log("COOLDOWN", newRoom.cooldown);
+  //       wait(newRoom.cooldown);
+  //       break;
+  //     }
+  //   }
+  // }
+  // return startingRoom;
 }
 
 export function wait(seconds) {
