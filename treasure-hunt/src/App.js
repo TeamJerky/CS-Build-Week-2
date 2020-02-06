@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { StateProvider } from "./contexts/StateContext";
-import { rootReducer, initialState } from "./reducers";
-import { traverse } from "./util/shortestPath";
-import { map } from "./util/map";
-import { darkmap } from "./util/darkworldmap";
-import { mine, autoSnitchMiner } from "./actions/miningActions";
+import React, { useState } from 'react';
+import { StateProvider } from './contexts/StateContext';
+import { rootReducer, initialState } from './reducers';
+import { traverse } from './util/shortestPath';
+import { map } from './util/map';
+import { darkmap } from './util/darkworldmap';
+import { mine, autoSnitchMiner, autoCoinMiner } from './actions/miningActions';
 
-import { axiosWithAuth } from "./util/axiosAuth";
+import { axiosWithAuth } from './util/axiosAuth';
 
 function App() {
   // traverse(0);
@@ -16,7 +16,7 @@ function App() {
 
   const examine = () => {
     return axiosWithAuth()
-      .post("adv/examine/", { name: "Wishing Well" })
+      .post('adv/examine/', { name: 'Wishing Well' })
       .then(res => console.log(res.data))
       .catch(err => console.log(err.response));
   };
@@ -36,23 +36,24 @@ function App() {
 
   const getSnitch = () => {
     return axiosWithAuth()
-      .post("adv/take/", { name: "golden snitch" })
+      .post('adv/take/', { name: 'golden snitch' })
       .then(res => console.log(res.data))
       .catch(err => console.log(err.response));
   };
 
-  autoSnitchMiner();
+  // autoSnitchMiner();
+  autoCoinMiner();
 
   return (
     <StateProvider initialState={initialState} reducer={rootReducer}>
-      <div className="App">Treasure Hunt</div>
+      <div className='App'>Treasure Hunt</div>
       <form onSubmit={darkWorld}>
-        <label htmlFor="dark">
+        <label htmlFor='dark'>
           Dark Room Travel:
           <input
-            type="number"
-            name="dark"
-            id="dark"
+            type='number'
+            name='dark'
+            id='dark'
             onChange={updateDarkRoom}
           />
         </label>
