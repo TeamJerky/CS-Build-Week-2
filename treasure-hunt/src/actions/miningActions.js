@@ -28,7 +28,7 @@ export const mine = async () => {
   let lastProof = await getLastProof();
   //   console.log('last proof: ', lastProof);
   let { proof, difficulty, cooldown } = lastProof;
-  //   wait(cooldown)
+  wait(cooldown);
   //   console.log('proof: ', proof);
   console.log('finding proof of work...');
   let workingProof = findProofOfWork(proof, difficulty);
@@ -59,7 +59,7 @@ const getSnitch = () => {
       ) {
         console.log('Success!', res.data);
       } else {
-        console.log('Failed :(', res.data);
+        console.log('Just missed it...', res.data);
       }
       return res.data;
     })
@@ -108,7 +108,7 @@ export const autoSnitchMiner = async () => {
     // Decode to get room #
     cpu.load(message.description);
     let room_number = cpu.run();
-    console.log('room number', room_number);
+    // console.log('room number', room_number);
     // traverse to room
     let snitch_room = await traverse(+room_number, darkmap);
     // wait(snitch_room.cooldown);
@@ -118,9 +118,13 @@ export const autoSnitchMiner = async () => {
     wait(snitch.cooldown);
     // loop;
     let recallToZero = await recall();
+    // console.log('RECALLING');
     wait(recallToZero.cooldown);
+    // console.log(recallToZero.cooldown, 'RECALLING COOLDOWN');
     let warpToDarkWorld = await warp();
+    // console.log('WARPING');
     wait(warpToDarkWorld.cooldown);
+    // console.log(warpToDarkWorld.cooldown, 'WARPING COOLDOWN');
     init = warpToDarkWorld;
   }
 };
@@ -143,6 +147,10 @@ export const autoCoinMiner = async () => {
     // Go to well (rm 555)
     // console.log(init, 'init');
     if (init.room_id !== 55) {
+      let recallToZero = await recall();
+      wait(recallToZero.cooldown);
+      init = recallToZero;
+
       let well = await traverseLight(55, map);
       // console.log('WELL', well);
       // wait(well.cooldown);
@@ -157,15 +165,12 @@ export const autoCoinMiner = async () => {
     let room_number = cpu.run();
     console.log('room number', room_number);
     // traverse to room
-    let snitch_room = await traverseLight(+room_number, map);
-    // wait(snitch_room.cooldown);
+    let mining_room = await traverseLight(+room_number, map);
+    wait(mining_room.cooldown);
     // pick up snitch
     let mineCoin = await mine();
     // console.log('mineCoin', snitch);
     wait(mineCoin.cooldown);
     // loop;
-    let recallToZero = await recall();
-    wait(recallToZero.cooldown);
-    init = recallToZero;
   }
 };

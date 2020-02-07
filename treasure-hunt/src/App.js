@@ -25,13 +25,23 @@ function App() {
     setDarkRoom(event.target.value);
   };
 
-  const darkWorld = event => {
+  const darkWorld = async event => {
     event.preventDefault();
-    traverse(+darkRoom, darkmap);
+    console.log('darkRoom', darkRoom);
+    let room = await traverse(+darkRoom, map);
+    console.log('Arrived at room: ', room.room_id);
+  };
+
+  const recall = event => {
+    event.preventDefault();
+    return axiosWithAuth()
+      .post('adv/recall/')
+      .then(res => console.log(res.data))
+      .catch(err => console.log(err.response));
   };
 
   const goToWell = () => {
-    traverse(555, darkmap);
+    traverse(55, map);
   };
 
   const getSnitch = () => {
@@ -41,8 +51,9 @@ function App() {
       .catch(err => console.log(err.response));
   };
 
-  // autoSnitchMiner();
-  autoCoinMiner();
+  autoSnitchMiner();
+  // autoCoinMiner();
+  // mine();
 
   return (
     <StateProvider initialState={initialState} reducer={rootReducer}>
@@ -62,6 +73,8 @@ function App() {
       <button onClick={goToWell}>Go To Well</button>
       <button onClick={examine}>Examine</button>
       <button onClick={getSnitch}>Take 'golden snitch'</button>
+      <button onClick={mine}>Mine Coin</button>
+      <button onClick={recall}>Recall</button>
     </StateProvider>
   );
 }

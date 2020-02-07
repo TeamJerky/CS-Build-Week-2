@@ -4,7 +4,7 @@ import { walkBack, wait } from './traverse';
 import { walkBackLight } from './traverse';
 
 function goToRoomById(startingRoom, graph, roomId) {
-  console.log('STARTING ROOM BFS', startingRoom);
+  // console.log('STARTING ROOM BFS', startingRoom);
   let queue = [];
   queue.push([startingRoom]);
   const visited = new Set();
@@ -30,11 +30,11 @@ export async function traverse(target, map) {
   let room = await initGame();
   wait(room.cooldown);
   let path = goToRoomById(map[room.room_id], map, target);
-  // console.log("room", room, "path", path);
+  // console.log('room', room, 'path', path);
 
   // convert path to include possible dashes
   path = withDash(path, map);
-  // console.log("Dashed path", path);
+  // console.log('Dashed path', path);
 
   return await walkBack(path);
 }
@@ -101,10 +101,17 @@ function withDash(path, map) {
           map[nextRoom.room_id].neighbors[initialDirection] !==
           path[i + 1].room_id
         ) {
+          neighbors = Object.entries(map[nextRoom.room_id].neighbors);
+          let currentDirection = neighbors.filter(
+            ([key, value]) => value === path[i + 1].room_id
+          )[0][0];
+          if (initialDirection !== currentDirection) {
+            initialDirection = currentDirection;
+          }
           dashPath.push(nextRoom);
           finalPath.push(dashPath);
           dashPath = [initialDirection];
-          dashPath.push(nextRoom);
+          dashPath.push(path[i + 1]);
           finalPath.push(dashPath);
         } else {
           dashPath.push(nextRoom, path[i + 1]);

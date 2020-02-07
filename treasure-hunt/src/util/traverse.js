@@ -38,8 +38,8 @@ export const moveBoosted = (direction, nextRoomId) => {
     .catch(err => console.log('error', err.response));
 };
 
-export const fly = direction => {
-  let command = { direction: direction };
+export const fly = (direction, nextRoomId) => {
+  let command = { direction: direction, next_room_id: `${nextRoomId}` };
   return axiosWithAuth()
     .post('adv/fly/', command)
     .then(res => {
@@ -187,9 +187,9 @@ export async function walkBack(path) {
         .join(',');
 
       let dashing = await dash(startingRoom[0], startingRoom.length - 1, rooms);
-      console.log('DASHING', dashing);
+      // console.log('DASHING TO', dashing.room_id);
       wait(dashing.cooldown);
-      console.log(dashing.cooldown, 'DASHING COOLDOWN');
+      // console.log(dashing.cooldown, 'DASHING COOLDOWN');
       if (path.length === 0) {
         return dashing;
       }
@@ -197,9 +197,11 @@ export async function walkBack(path) {
       let direction = startingRoom[0];
       let move;
       for (let i = 1; i < startingRoom.length; i++) {
-        move = await moveBoosted(direction, `${startingRoom[i].room_id}`);
+        move = await fly(direction, `${startingRoom[i].room_id}`);
+        // console.log('MOVING TO', move.room_id);
         wait(move.cooldown);
-        console.log(move.cooldown, 'MOVE COOLDOWN');
+        // console.log('MOVE', move);
+        // console.log(move.cooldown, 'MOVE COOLDOWN');
       }
       if (path.length === 0) {
         return move;
@@ -228,11 +230,17 @@ export async function walkBackLight(path) {
       }
     } else {
       let direction = startingRoom[0];
-      let flyOver;
+      let move;
       for (let i = 1; i < startingRoom.length; i++) {
-        flyOver = await fly(direction);
-        wait(flyOver.cooldown);
-        console.log(flyOver.cooldown, 'FLY COOLDOWN');
+        if (startingRoom[i].terrain !== 'CAVE') {
+          move = await fly(direction);
+          wait(move.cooldown);
+          console.log(move.cooldown, 'FLY COOLDOWN');
+        } else {
+          move = await moveBoosted(direction, `${startingRoom[i].room_id}`);
+          wait(move.cooldown);
+          console.log(move.cooldown, 'MOVE COOLDOWN');
+        }
       }
       if (path.length === 0) {
         return fly;
