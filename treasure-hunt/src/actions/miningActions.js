@@ -4,7 +4,12 @@ import { compiledCPU } from '../util/compiledCPU';
 import { initGame } from '../data';
 import { wait } from '../util/traverse';
 import { darkmap } from '../util/darkworldmap';
-import { traverse, traverseLight } from '../util/shortestPath';
+import {
+  traverse,
+  traverseLight,
+  goToRoomById,
+  withDash
+} from '../util/shortestPath';
 import { map } from '../util/map';
 
 export const getLastProof = () => {
@@ -96,10 +101,10 @@ export const autoSnitchMiner = async () => {
     // Go to well (rm 555)
     // console.log(init, 'init');
     if (init.room_id !== 555) {
-      let well = await traverse(555, darkmap);
+      let well = await traverse(+init.room_id, 555, darkmap);
       // console.log('WELL', well);
       // wait(well.cooldown);
-      // init = well;
+      init = well;
     }
     // Examine (res.data.description === string to decode)
     let message = await examine();
@@ -108,9 +113,9 @@ export const autoSnitchMiner = async () => {
     // Decode to get room #
     cpu.load(message.description);
     let room_number = cpu.run();
-    // console.log('room number', room_number);
+    console.log('room number', room_number);
     // traverse to room
-    let snitch_room = await traverse(+room_number, darkmap);
+    let snitch_room = await traverse(+init.room_id, +room_number, darkmap);
     // wait(snitch_room.cooldown);
     // pick up snitch
     let snitch = await getSnitch();
@@ -128,6 +133,94 @@ export const autoSnitchMiner = async () => {
     init = warpToDarkWorld;
   }
 };
+
+// Optimized
+// export const autoSnitchMiner = async () => {
+//   // let cpu = new compiledCPU();
+//   // First init to get starting room
+//   let init = await initGame();
+//   wait(init.cooldown);
+
+//   if (darkmap[init.room_id] === undefined) {
+//     let warpToLight = await warp();
+//     wait(warpToLight.cooldown);
+//     init = warpToLight;
+//   }
+
+//   while (true) {
+//     let cpu = new compiledCPU();
+//     // Go to well (rm 555)
+//     // console.log(init, 'init');
+//     // if path to well is less than 7
+//     // walk
+//     // otherwise,
+//     // recall
+//     // warp
+//     // then go to well
+//     // goToRoomById(startingRoom, graph, roomId)
+//     let toTemple = goToRoomById(darkmap[+init.room_id], darkmap, 555);
+//     let dashedToTemple = withDash(toTemple, darkmap);
+//     console.log(
+//       'From init',
+//       init.room_id,
+//       'to temple length',
+//       dashedToTemple.length
+//     );
+//     if (dashedToTemple.length > 3) {
+//       console.log('tele to temple');
+//       let recallToZero = await recall();
+//       // console.log('RECALLING');
+//       wait(recallToZero.cooldown);
+//       // console.log(recallToZero.cooldown, 'RECALLING COOLDOWN');
+//       let warpToDarkWorld = await warp();
+//       // console.log('WARPING');
+//       wait(warpToDarkWorld.cooldown);
+//       init = warpToDarkWorld;
+//     }
+//     let well = await traverse(+init.room_id, 555, darkmap);
+//     init = well;
+//     // Examine (res.data.description === string to decode)
+//     let message = await examine();
+//     wait(message.cooldown);
+//     // console.log('message: ', message);
+//     // Decode to get room #
+//     cpu.load(message.description);
+//     let room_number = cpu.run();
+//     console.log('room number', room_number);
+//     // traverse to room
+//     // goToRoomById(startingRoom, graph, roomId)
+//     let fromTemple = goToRoomById(darkmap[555], darkmap, +room_number);
+//     let templeToSnitch = withDash(fromTemple, darkmap);
+//     let fromWarp = goToRoomById(darkmap[500], darkmap, +room_number);
+//     let warpToSnitch = withDash(fromWarp, darkmap);
+//     if (templeToSnitch.length < warpToSnitch.length) {
+//       let snitch_room = await traverse(+init.room_id, +room_number, darkmap);
+//       init = snitch_room;
+//     } else {
+//       let recallToZero = await recall();
+//       // console.log('RECALLING');
+//       wait(recallToZero.cooldown);
+//       // console.log(recallToZero.cooldown, 'RECALLING COOLDOWN');
+//       let warpToDarkWorld = await warp();
+//       // console.log('WARPING');
+//       wait(warpToDarkWorld.cooldown);
+//       let snitch_room = await traverse(
+//         +warpToDarkWorld.room_id,
+//         +room_number,
+//         darkmap
+//       );
+//       init = snitch_room;
+//     }
+//     // wait(snitch_room.cooldown);
+//     // pick up snitch
+//     let snitch = await getSnitch();
+//     // console.log('SNITCH', snitch);
+//     wait(snitch.cooldown);
+//     // loop;
+
+//     // console.log(warpToDarkWorld.cooldown, 'WARPING COOLDOWN');
+//   }
+// };
 
 // Automated call
 export const autoCoinMiner = async () => {

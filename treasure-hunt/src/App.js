@@ -28,7 +28,7 @@ function App() {
   const darkWorld = async event => {
     event.preventDefault();
     console.log('darkRoom', darkRoom);
-    let room = await traverse(+darkRoom, map);
+    let room = await traverse(555, +darkRoom, darkmap);
     console.log('Arrived at room: ', room.room_id);
   };
 

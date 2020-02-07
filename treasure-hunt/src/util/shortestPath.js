@@ -3,7 +3,7 @@ import { initGame } from '../data';
 import { walkBack, wait } from './traverse';
 import { walkBackLight } from './traverse';
 
-function goToRoomById(startingRoom, graph, roomId) {
+export function goToRoomById(startingRoom, graph, roomId) {
   // console.log('STARTING ROOM BFS', startingRoom);
   let queue = [];
   queue.push([startingRoom]);
@@ -26,15 +26,16 @@ function goToRoomById(startingRoom, graph, roomId) {
   }
 }
 
-export async function traverse(target, map) {
-  let room = await initGame();
-  wait(room.cooldown);
-  let path = goToRoomById(map[room.room_id], map, target);
+export async function traverse(startingRoom, target, map) {
+  // let room = await initGame();
+  // wait(room.cooldown);
+  // let path = goToRoomById(map[room.room_id], map, target);
+  let path = goToRoomById(map[startingRoom], map, target);
   // console.log('room', room, 'path', path);
 
   // convert path to include possible dashes
   path = withDash(path, map);
-  // console.log('Dashed path', path);
+  console.log('Dashed path', path);
 
   return await walkBack(path);
 }
@@ -47,7 +48,7 @@ export async function traverseLight(target, map) {
 
   // convert path to include possible dashes
   path = withDash(path, map);
-  // console.log("Dashed path", path);
+  console.log('Dashed path', path);
 
   return await walkBackLight(path);
 }
@@ -56,7 +57,7 @@ export async function traverseLight(target, map) {
 // '{"direction":"n", "num_rooms":"5", "next_room_ids":"10,19,20,63,72"}'
 // return [[{}, {}, {}], {}, [{}, {}]]
 
-function withDash(path, map) {
+export function withDash(path, map) {
   let finalPath = [];
   let startingRoom = path[0];
 
