@@ -44,7 +44,7 @@ export const mine = async () => {
 const examine = () => {
   return axiosWithAuth()
     .post("adv/examine/", { name: "Wishing Well" })
-    .then(res => res.data.description)
+    .then(res => res.data)
     .catch(err => console.log(err.response));
 };
 
@@ -65,26 +65,40 @@ const getSnitch = () => {
     .catch(err => console.log(err.response));
 };
 
+export const recall = () => {
+  return axiosWithAuth()
+    .post("adv/recall/")
+    .then(res => res.data)
+    .catch(err => console.log(err));
+};
+export const warp = () => {
+  return axiosWithAuth()
+    .post("adv/warp/")
+    .then(res => res.data)
+    .catch(err => console.log(err));
+};
 // Automated call
 export const autoSnitchMiner = async () => {
-  let cpu = new compiledCPU();
+  // let cpu = new compiledCPU();
   // First init to get starting room
   let init = await initGame();
-
   wait(init.cooldown);
   while (true) {
+    let cpu = new compiledCPU();
     // Go to well (rm 555)
+    // console.log(init, 'init');
     if (init.room_id !== 555) {
       let well = await traverse(555, darkmap);
-      console.log("WELL", well);
+      // console.log('WELL', well);
       wait(well.cooldown);
+      // init = well;
     }
     // Examine (res.data.description === string to decode)
     let message = await examine();
     wait(message.cooldown);
+    // console.log('message: ', message);
     // Decode to get room #
-    cpu.load(message);
-
+    cpu.load(message.description);
     let room_number = cpu.run();
     console.log("room number", room_number);
     // traverse to room
@@ -92,8 +106,13 @@ export const autoSnitchMiner = async () => {
     wait(snitch_room.cooldown);
     // pick up snitch
     let snitch = await getSnitch();
-    console.log("SNITCH", snitch);
+    // console.log('SNITCH', snitch);
     wait(snitch.cooldown);
     // loop;
+    let recallToZero = await recall();
+    wait(recallToZero.cooldown);
+    let warpToDarkWorld = await warp();
+    wait(warpToDarkWorld.cooldown);
+    init = warpToDarkWorld;
   }
 };

@@ -5,6 +5,7 @@ import { traverse } from "./util/shortestPath";
 import { map } from "./util/map";
 import { darkmap } from "./util/darkworldmap";
 import { mine, autoSnitchMiner } from "./actions/miningActions";
+import { collectTreasure } from "./util/collectTreasure";
 
 import { axiosWithAuth } from "./util/axiosAuth";
 
@@ -41,7 +42,8 @@ function App() {
       .catch(err => console.log(err.response));
   };
 
-  autoSnitchMiner();
+  // autoSnitchMiner();
+  collectTreasure(map);
 
   return (
     <StateProvider initialState={initialState} reducer={rootReducer}>
